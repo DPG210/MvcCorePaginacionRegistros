@@ -35,5 +35,14 @@ namespace MvcCorePaginacionRegistros.Repositories
                 .FirstOrDefaultAsync();
             return departamento;
         }
+        public async Task<List<VistaDepartamento>> GetVistaDepartamentosEnGrupoAsync(int posicion)
+        {
+            //select * from v_departamentos_individual where posicion>=1 and posicion<(1+2)
+            var consulta = from datos in this.context.VistaDepartamentos
+                           where datos.Posicion >= posicion
+                           && datos.Posicion < (posicion + 2)
+                           select datos;
+            return await consulta.ToListAsync();
+        }
     }
 }
