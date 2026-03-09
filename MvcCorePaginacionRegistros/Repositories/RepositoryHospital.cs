@@ -63,6 +63,19 @@ as
 	where OFICIO= @oficio) query
 	where (query.POSICION >= @posicion AND POSICION < (@posicion + 3))
 go
+    alter procedure SP_GRUPO_EMPLEADOS_DEPARTAMENTO
+(@posicion int, @departamento int, @registros int out)
+as
+	select @registros= count(EMP_NO) from emp
+	where DEPT_NO = @departamento
+	SELECT EMP_NO, APELLIDO, OFICIO, SALARIO, DEPT_NO 
+	from 
+	(select cast(row_number() over (order by apellido) as int)
+	as posicion,EMP_NO, APELLIDO, OFICIO, SALARIO, DEPT_NO
+	FROM EMP
+	where DEPT_NO= @departamento) query
+	where (query.POSICION = @posicion )
+go
      */
     #endregion
     {
@@ -145,6 +158,59 @@ go
                 Empleados = empleados,
                 NumeroRegistros = registros
             };
+        }
+        public List<Departamento> GetDepartamentos()
+        {
+            return  this.context.Departamentos.ToList();
+        }
+        public async Task<Departamento> FindDepartamento(int idDepartamento)
+        {
+            return await this.context.Departamentos.Where(z => z.IdDepartamento == idDepartamento).FirstOrDefaultAsync();
+        }
+        public async Task<int> EmpleadosCountAsync(int idDepartamento)
+        {
+            return await this.context.Empleados.Where(z => z.IdDepartamento == idDepartamento).CountAsync();
+        }
+        public async Task<ModelEmpleadosOficio> GetEmpleadosDepartamentoAsync(int idDepartamento, int posicion)
+        {
+            string sql = "sp_grupo_empleados_departamento @posicion,@departamento, @registros out";
+            SqlParameter pamPosicion = new SqlParameter("@posicion", posicion);
+            SqlParameter pamDept = new SqlParameter("@departamento", idDepartamento);
+            SqlParameter pamReg = new SqlParameter("@registros", 0);
+            pamReg.DbType = DbType.Int32;
+            pamReg.Direction = ParameterDirection.Output;
+            var consulta = this.context.Empleados.FromSqlRaw(sql, pamPosicion, pamDept, pamReg);
+
+            List<Empleado> empleados = await consulta.ToListAsync();
+            //HASTA QUE NO HEMOS EXTRAIDO LOS DATOS (Empleados)
+            // NO SE LIBERAN LOS PARAMETROS DE SALIDA
+            int registros = (int)pamReg.Value;
+            return new ModelEmpleadosOficio
+            {
+                Empleados = empleados,
+                NumeroRegistros = registros
+            };
+        }
+        public async Task<ModelEmpleadosOficio> GetEmpleadosDepartamentoEFAsync(int iddept, int posicion)
+        {
+            int numeroRegistros = await this.context.Empleados
+                .Where(x => x.IdDepartamento == iddept)
+                .CountAsync();
+
+            List<Empleado> empleados = await this.context.Empleados
+                .Where(x => x.IdDepartamento == iddept)
+                .OrderBy(x => x.IdEmpleado) 
+                .Skip(posicion - 1)
+                .Take(1)
+                .ToListAsync();
+
+            ModelEmpleadosOficio model = new ModelEmpleadosOficio
+            {
+                NumeroRegistros = numeroRegistros,
+                Empleados = empleados
+            };
+
+            return model;
         }
     }
 }
