@@ -55,11 +55,28 @@ namespace MvcCorePaginacionRegistros.Controllers
             int numRegistros = await this.repo.GetNumeroRegistrosVistaDepartamentosAsync();
 
             
-            ViewData["POSICION_ACTUAL"] = numPagina;
+            //ViewData["POSICION_ACTUAL"] = numPagina;
             ViewData["NUMEROREGISTROS"] = numRegistros;
             
             List<VistaDepartamento> departamentos =
                await this.repo.GetVistaDepartamentosEnGrupoAsync(posicion.Value);
+            return View(departamentos);
+        }
+        public async Task<IActionResult> GrupoDepartamentos(int? posicion)
+        {
+            if (posicion == null)
+            {
+                posicion = 1;
+            }
+     
+            
+            int numRegistros = await this.repo.GetNumeroRegistrosVistaDepartamentosAsync();
+
+
+            ViewData["NUMEROREGISTROS"] = numRegistros;
+
+            List<Departamento> departamentos =
+               await this.repo.GetGrupoDepartamentosAsync(posicion.Value);
             return View(departamentos);
         }
         public IActionResult Index()

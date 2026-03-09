@@ -1,21 +1,21 @@
-﻿@model List<VistaDepartamento>
+﻿@model List<Departamento>
 @{
     int numRegistros = (int)ViewData["NUMEROREGISTROS"];
-    
+
     int numPagina = 1;
 }
 
 <h1>Paginacion Grupal Departamentos</h1>
 
-<hr/>
+<hr />
 
 
-<hr/>
+<hr />
 <div class="pagination-container">
     @for (int i = 1; i <= numRegistros; i += 2)
     {
-        
-        <a asp-controller="Paginacion" asp-action="GrupoDepartamento" asp-route-posicion=@i"
+
+        <a asp-controller="Paginacion" asp-action="GrupoDepartamentos" asp-route-posicion=@i"
            class="btn btn-info">
             Página @numPagina
         </a>
@@ -27,17 +27,15 @@
 <table class="table table-warning">
     <thead>
         <tr>
-            <th>Posicion</th>
             <th>Id</th>
             <th>Nombre</th>
             <th>Localidad</th>
         </tr>
     </thead>
     <tbody>
-        @foreach(VistaDepartamento dept in Model)
+        @foreach (Departamento dept in Model)
         {
             <tr>
-                <td>@dept.Posicion</td>
                 <td>@dept.IdDepartamento</td>
                 <td>@dept.Nombre</td>
                 <td>@dept.Localidad</td>

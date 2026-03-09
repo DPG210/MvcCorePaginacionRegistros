@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using MvcCorePaginacionRegistros.Data;
 using MvcCorePaginacionRegistros.Models;
 
@@ -14,6 +15,16 @@ namespace MvcCorePaginacionRegistros.Repositories
         as posicion
         , dept_no, dnombre, loc from DEPT
         go*/
+    #endregion
+    #region STORED PROCEDURE
+    /*
+     create procedure SP_GRUPO_DEPARTAMENTOS
+        (@posicion int)
+        as
+        select dept_no, dnombre, loc from V_Departamentos_Individual
+        where posicion>= @posicion and posicion <(@posicion +2)
+        go
+     */
     #endregion
     {
         private HospitalContext context;
@@ -42,6 +53,13 @@ namespace MvcCorePaginacionRegistros.Repositories
                            where datos.Posicion >= posicion
                            && datos.Posicion < (posicion + 2)
                            select datos;
+            return await consulta.ToListAsync();
+        }
+        public async Task<List<Departamento>> GetGrupoDepartamentosAsync (int posicion)
+        {
+            string sql = "sp_grupo_departamentos @posicion";
+            SqlParameter pamPos = new SqlParameter("@posicion", posicion);
+            var consulta = this.context.Departamentos.FromSqlRaw(sql, pamPos);
             return await consulta.ToListAsync();
         }
     }
